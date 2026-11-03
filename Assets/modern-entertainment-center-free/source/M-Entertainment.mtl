@@ -1,0 +1,43 @@
+# MTL file for Modern Entertainment Center
+
+newmtl Screen
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.500 0.500 0.500
+d 1.0
+illum 2
+map_Kd ../textures/Screen_Base_Color.png
+map_Bump -bm 1.0 ../textures/Screen_Normal.png
+map_Ks ../textures/Screen_MetallicGloss.png
+
+newmtl TV_&_Cables
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.500 0.500 0.500
+d 1.0
+illum 2
+map_Kd ../textures/TV_&_Cables_Base_Color.png
+map_Bump -bm 1.0 ../textures/TV_&_Cables_Normal.png
+map_Ks ../textures/TV_&_Cables_MetallicGloss.png
+map_Ke ../textures/TV_&_Cables_Emissive.png
+
+newmtl Stand
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.500 0.500 0.500
+d 1.0
+illum 2
+map_Kd ../textures/Stand_Base_Color.png
+map_Bump -bm 1.0 ../textures/Stand_Normal.png
+map_Ks ../textures/Stand_MetallicGloss.png
+
+newmtl Player_&_Decor
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.500 0.500 0.500
+d 1.0
+illum 2
+map_Kd ../textures/Player_&_Decor_Base_Color.png
+map_Bump -bm 1.0 ../textures/Player_&_Decor_Normal.png
+map_Ks ../textures/Player_&_Decor_MetallicGloss.png
+

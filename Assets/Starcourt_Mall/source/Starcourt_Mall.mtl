@@ -1,0 +1,79 @@
+# Material definitions for Starcourt Mall Interior
+
+newmtl Starcourt_Sign
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+Ns 120.0
+map_Kd ../textures/Starcourt_Sign_BaseColor.png
+map_Bump ../textures/Starcourt_Sign_Normal.png
+map_Ke ../textures/Starcourt_Sign_Emissive.png
+
+newmtl Starcourt_Pillars
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+Ns 120.0
+map_Kd ../textures/Starcourt_Pillars_BaseColor.png
+map_Bump ../textures/Starcourt_Pillars_Normal.png
+map_Ke ../textures/Starcourt_Pillars_Emissive.png
+
+newmtl Starcourt_Storefronts_Upper
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+Ns 120.0
+map_Kd ../textures/Starcourt_Storefronts_Upper_BaseColor.png
+map_Bump ../textures/Starcourt_Storefronts_Upper_Normal.png
+map_Ke ../textures/Starcourt_Storefronts_Upper_Emissive.png
+
+newmtl Starcourt_Storefronts_Lower
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+Ns 120.0
+map_Kd ../textures/Starcourt_Storefronts_Lower_BaseColor.png
+map_Bump ../textures/Starcourt_Storefronts_Lower_Normal.png
+map_Ke ../textures/Starcourt_Storefronts_Lower_Emissive.png
+
+newmtl Starcourt_Floors_Carpet
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+Ns 120.0
+map_Kd ../textures/Starcourt_Carpet_BaseColor.png
+map_Bump ../textures/Starcourt_Carpet_Normal.png
+
+newmtl Starcourt_Floors_Tiles
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+Ns 120.0
+map_Kd ../textures/Starcourt_Tiles_BaseColor.png
+map_Bump ../textures/Starcourt_Tiles_Normal.png
+
+newmtl Starcourt_Railings_Escalators
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+Ns 120.0
+map_Kd ../textures/Starcourt_Railings_BaseColor.png
+map_Bump ../textures/Starcourt_Railings_Normal.png
+map_Ke ../textures/Starcourt_Railings_Emissive.png
+
+newmtl Starcourt_Roof_Truss
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+Ns 120.0
+map_Kd ../textures/Starcourt_Truss_BaseColor.png
+map_Bump ../textures/Starcourt_Truss_Normal.png
+
+newmtl Starcourt_Glass
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+Ns 120.0
+map_Kd ../textures/Starcourt_Glass_BaseColor.png
+map_Bump ../textures/Starcourt_Glass_Normal.png
+

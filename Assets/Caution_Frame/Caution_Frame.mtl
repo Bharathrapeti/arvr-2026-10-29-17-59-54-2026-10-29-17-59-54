@@ -1,0 +1,10 @@
+# Caution Frame Material
+newmtl Caution_Frame_Mat
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.200 0.200 0.200
+Ns 100.0
+d 1.0
+illum 2
+map_Kd Textures/Caution_Bear_Albedo.png
+map_Bump Textures/Caution_Bear_Normal.png

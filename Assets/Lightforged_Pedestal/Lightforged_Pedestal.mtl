@@ -1,0 +1,42 @@
+newmtl Lightforged_Platform_Mat
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+map_Kd Textures/Lightforged_Platform_BaseColor.png
+
+newmtl Lightforged_Pedestal_Mat
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+map_Kd Textures/Lightforged_Pedestal_BaseColor.png
+
+newmtl Lightforged_Cloth_Mat
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+map_Kd Textures/Lightforged_Cloth_BaseColor.png
+
+newmtl Lightforged_Book_Mat
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+map_Kd Textures/Lightforged_Book_BaseColor.png
+
+newmtl Lightforged_Parchment_Mat
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+map_Kd Textures/Lightforged_Parchment_BaseColor.png
+
+newmtl Lightforged_Feather_Mat
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+map_Kd Textures/Lightforged_Feather_BaseColor.png
+
+newmtl Lightforged_Sigil_Mat
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+map_Kd Textures/Lightforged_Sigil_BaseColor.png
+

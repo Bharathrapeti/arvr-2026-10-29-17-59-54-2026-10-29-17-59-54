@@ -1,0 +1,46 @@
+fileFormatVersion: 2
+guid: af000022e5f60718293a4b5c6d7e8f22
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+  bumpMap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMasterTextureLimit: 0
+  doesThumbnailsHaveAlpha: 0
+  alphaIsTransparency: 0
+  textureType: 0
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbook: 0
+  ignorePngGamma: 0
+  cookieLightType: 0
+  maxTextureSize: 2048
+  resizeAlgorithm: 0
+  textureFormat: -1
+  textureSubFormat: 0
+  compressionQuality: 50
+  crunchedCompression: 0
+  allowsAlphaSplitting: 0
+  overriddenOutput: 0
+  platformSettings: []
+  spriteMode: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

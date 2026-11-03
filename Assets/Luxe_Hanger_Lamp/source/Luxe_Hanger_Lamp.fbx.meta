@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: f1a2b3c4d5e60718293a4b5c6d7e1003
+ModelImporter:
+  serializedVersion: 22200
+  internalIDToNameTable: []
+  externalObjects:
+    Hanger_BlackMetal: {fileID: 2100000, guid: f1a2b3c4d5e60718293a4b5c6d7e3001, type: 2}
+    Hanger_CrystalGlass: {fileID: 2100000, guid: f1a2b3c4d5e60718293a4b5c6d7e3002, type: 2}
+    Hanger_BulbGlow: {fileID: 2100000, guid: f1a2b3c4d5e60718293a4b5c6d7e3003, type: 2}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+    searchTexturesGlobally: 0
+  meshes:
+    globalScale: 1
+    useFileUnits: 1
+    bakeAxisConversion: 0
+    importBlendShapes: 1
+    importCameras: 0
+    importLights: 0
+    nodeNameCollisionStrategy: 0
+    fileIdsGeneration: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

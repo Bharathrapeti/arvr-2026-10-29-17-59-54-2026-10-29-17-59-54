@@ -1,0 +1,36 @@
+fileFormatVersion: 2
+guid: a1b2c3d4e5f60718293a4b5c6d7e1001
+ModelImporter:
+  serializedVersion: 22200
+  internalIDToNameTable: []
+  externalObjects:
+    Starcourt_Sign: {fileID: 2100000, guid: a1b2c3d4e5f60718293a4b5c6d7e3001, type: 2}
+    Starcourt_Pillars: {fileID: 2100000, guid: a1b2c3d4e5f60718293a4b5c6d7e3002, type: 2}
+    Starcourt_Storefronts_Upper: {fileID: 2100000, guid: a1b2c3d4e5f60718293a4b5c6d7e3003, type: 2}
+    Starcourt_Storefronts_Lower: {fileID: 2100000, guid: a1b2c3d4e5f60718293a4b5c6d7e3004, type: 2}
+    Starcourt_Floors_Carpet: {fileID: 2100000, guid: a1b2c3d4e5f60718293a4b5c6d7e3005, type: 2}
+    Starcourt_Floors_Tiles: {fileID: 2100000, guid: a1b2c3d4e5f60718293a4b5c6d7e3006, type: 2}
+    Starcourt_Railings_Escalators: {fileID: 2100000, guid: a1b2c3d4e5f60718293a4b5c6d7e3007, type: 2}
+    Starcourt_Roof_Truss: {fileID: 2100000, guid: a1b2c3d4e5f60718293a4b5c6d7e3008, type: 2}
+    Starcourt_Glass: {fileID: 2100000, guid: a1b2c3d4e5f60718293a4b5c6d7e3009, type: 2}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+    searchTexturesGlobally: 0
+  meshes:
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 0
+    importLights: 0
+    nodeNameCollisionStrategy: 0
+    fileIdsGeneration: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,10 @@
+# Material for Old_Simple_Drawer
+newmtl Old_Simple_Drawer_Mat
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.200 0.200 0.200
+d 1.0
+illum 2
+map_Kd Textures/Old_Simple_Drawer_Albedo.jpg
+map_Bump Textures/Old_Simple_Drawer_Normal.jpg
+bump Textures/Old_Simple_Drawer_Normal.jpg

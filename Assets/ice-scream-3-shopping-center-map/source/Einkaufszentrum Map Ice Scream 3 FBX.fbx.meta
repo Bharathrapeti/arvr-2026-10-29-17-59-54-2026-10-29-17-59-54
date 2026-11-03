@@ -1,0 +1,47 @@
+fileFormatVersion: 2
+guid: b1c2d3e4f5a60718293a4b5c6d7e1001
+ModelImporter:
+  serializedVersion: 22200
+  internalIDToNameTable: []
+  externalObjects:
+    Default-Material: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3001, type: 2}
+    IS_Mobile_CentroComercial_02: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3002, type: 2}
+    IS_Mobile_CentroComercial_02_unlit: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3003, type: 2}
+    IS_Objetos1: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3004, type: 2}
+    IS_Mobile_CentroComercial_01: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3005, type: 2}
+    IS_Mobile_Objetos_01: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3006, type: 2}
+    candle_tex: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3007, type: 2}
+    IS_Mobile_CentroComercial_01_luces: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3008, type: 2}
+    gris_transparente: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3009, type: 2}
+    pasted__IS_Centrocomercial: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3010, type: 2}
+    IS_Centrocomercial_Vidrio: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3011, type: 2}
+    IS_Centrocomercial_Agua: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3012, type: 2}
+    IS_Mobile_CentroComercial_agua: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3013, type: 2}
+    IS_Mobile_Furgoneta_01: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3014, type: 2}
+    pasted__pasted__pasted__pasted__IS_Centrocomercial: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3015, type: 2}
+    pasted__IS_Centrocomercial2: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3016, type: 2}
+    IS_Mobile_CentroComercial_tienda_motos: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3017, type: 2}
+    IS_Mobile_CentroComercial_tienda_motos_trans: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3018, type: 2}
+    IS_Mobile_CentroComercial_tienda_supervivencia: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3019, type: 2}
+    IS_Mobile_CentroComercial_tienda_supervivencia_trans: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3020, type: 2}
+    carrera_minimoto: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3021, type: 2}
+    IS_Mobile_Thumbnail: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3022, type: 2}
+    IS_Mobile_Furgoneta_luz: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3023, type: 2}
+    pasted__pasted__IS_Centrocomercial: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3024, type: 2}
+    IS_Mobile_CentroComercial_trans: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3025, type: 2}
+    wick: {fileID: 2100000, guid: b1c2d3e4f5a60718293a4b5c6d7e3026, type: 2}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+    searchTexturesGlobally: 0
+  meshes:
+    globalScale: 1
+    useFileUnits: 1
+    bakeAxisConversion: 0
+    nodeNameCollisionStrategy: 0
+    fileIdsGeneration: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
