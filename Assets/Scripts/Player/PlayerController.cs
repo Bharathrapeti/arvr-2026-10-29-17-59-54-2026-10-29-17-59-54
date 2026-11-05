@@ -14,14 +14,14 @@ namespace AREscapeRoom.Player
 
         [Header("Look Settings")]
         [SerializeField] private Transform cameraTransform;
-        [SerializeField] private float mouseSensitivity = 2.0f;
-        [SerializeField] private float upDownLookLimit = 80.0f;
+        [SerializeField] private float mouseSensitivity = 1.5f;
+        [SerializeField] private float upDownLookLimit = 60.0f;
 
         private CharacterController characterController;
         private Vector3 velocity;
         private float verticalRotation;
         private bool isControlEnabled = true;
-        private bool skipLookDelta;
+        private int skipLookFrames = 10;
 
         public bool IsControlEnabled => isControlEnabled;
 
@@ -33,6 +33,7 @@ namespace AREscapeRoom.Player
         private void Awake()
         {
             characterController = GetComponent<CharacterController>();
+            EnsureSolidFloorCollider();
         }
 
         private void Start()
@@ -44,14 +45,61 @@ namespace AREscapeRoom.Player
                     cameraTransform = cam.transform;
             }
 
-            if (cameraTransform != null)
+            if (cameraTransform == null)
             {
-                float pitch = cameraTransform.localEulerAngles.x;
-                if (pitch > 180f) pitch -= 360f;
-                verticalRotation = Mathf.Clamp(pitch, -upDownLookLimit, upDownLookLimit);
+                GameObject camObj = GameObject.FindGameObjectWithTag("MainCamera");
+                if (camObj == null) camObj = GameObject.Find("Main Camera");
+                if (camObj != null) cameraTransform = camObj.transform;
             }
 
+            // In game: place camera and player firmly in front of AR_Escape_Room_Structure
+            PlaceInFrontOfEscapeRoom();
+
+            velocity = Vector3.zero;
+            skipLookFrames = 10;
             LockCursor();
+        }
+
+        public void PlaceInFrontOfEscapeRoom()
+        {
+            GameObject door = GameObject.Find("Door_5_Brown");
+            if (door == null) door = GameObject.Find("Door_5_Room");
+            GameObject room = GameObject.Find("AR_Escape_Room_Structure");
+
+            Vector3 targetPos;
+            if (door != null)
+            {
+                // In front of the entrance door (2.8m back along Z, on floor at y = 0.05)
+                targetPos = new Vector3(door.transform.position.x, 0.05f, door.transform.position.z - 2.8f);
+            }
+            else if (room != null)
+            {
+                // In front of the room structure (front wall is at z = -5 local)
+                targetPos = new Vector3(room.transform.position.x + 0.1f, 0.05f, room.transform.position.z - 8.4f);
+            }
+            else
+            {
+                targetPos = new Vector3(0.109f, 0.05f, -28.459f);
+            }
+
+            if (characterController != null)
+                characterController.enabled = false;
+
+            transform.position = targetPos;
+            transform.rotation = Quaternion.identity;
+
+            if (cameraTransform != null)
+            {
+                cameraTransform.localPosition = new Vector3(0f, 1.6f, 0f);
+                cameraTransform.localRotation = Quaternion.identity;
+            }
+
+            verticalRotation = 0f;
+
+            if (characterController != null)
+                characterController.enabled = true;
+
+            Debug.Log($"[PlayerController] In game: camera placed in front of AR_Escape_Room_Structure at {targetPos}");
         }
 
         private void Update()
@@ -74,7 +122,7 @@ namespace AREscapeRoom.Player
             if (KeypadUI.AnyVisible)
                 return;
 
-            // If mouse is unlocked, click inside game window to lock cursor
+            // If mouse is unlocked, lock it when user clicks back into the game window
             if (Cursor.lockState != CursorLockMode.Locked)
             {
                 if (Input.GetMouseButtonDown(0))
@@ -90,30 +138,30 @@ namespace AREscapeRoom.Player
 
         private void HandleLook()
         {
-            // Discard delta spikes when locking or regaining focus
-            if (skipLookDelta)
+            // Discard initial recentering frames after locking cursor or regaining focus
+            if (skipLookFrames > 0)
             {
-                skipLookDelta = false;
+                skipLookFrames--;
+                Input.GetAxis("Mouse X");
+                Input.GetAxis("Mouse Y");
                 return;
             }
 
-            float mouseX =
-                Input.GetAxis("Mouse X") *
-                mouseSensitivity *
-                100f *
-                Time.deltaTime;
+            float dt = Mathf.Min(Time.deltaTime, 0.05f);
 
-            float mouseY =
-                Input.GetAxis("Mouse Y") *
-                mouseSensitivity *
-                100f *
-                Time.deltaTime;
+            float rawX = Input.GetAxis("Mouse X");
+            float rawY = Input.GetAxis("Mouse Y");
 
-            // Protect against sudden large mouse jumps
-            if (Mathf.Abs(mouseX) > 40f || Mathf.Abs(mouseY) > 40f)
-            {
-                return;
-            }
+            // Cap raw axis deltas to protect against sudden mouse focus spikes
+            rawX = Mathf.Clamp(rawX, -2f, 2f);
+            rawY = Mathf.Clamp(rawY, -2f, 2f);
+
+            float mouseX = rawX * mouseSensitivity * 60f * dt;
+            float mouseY = rawY * mouseSensitivity * 60f * dt;
+
+            // Clamp max rotation per single frame to 3 degrees to eliminate any spinning or sudden pitch
+            mouseX = Mathf.Clamp(mouseX, -3f, 3f);
+            mouseY = Mathf.Clamp(mouseY, -3f, 3f);
 
             verticalRotation -= mouseY;
             verticalRotation = Mathf.Clamp(verticalRotation, -upDownLookLimit, upDownLookLimit);
@@ -131,49 +179,54 @@ namespace AREscapeRoom.Player
             if (characterController == null)
                 return;
 
+            float dt = Mathf.Min(Time.deltaTime, 0.05f);
+
             float moveX = Input.GetAxisRaw("Horizontal");
             float moveZ = Input.GetAxisRaw("Vertical");
 
-            Vector3 move =
-                transform.right * moveX +
-                transform.forward * moveZ;
+            Vector3 move = transform.right * moveX + transform.forward * moveZ;
 
             if (move.sqrMagnitude > 1f)
                 move.Normalize();
 
-            float speed =
-                Input.GetKey(KeyCode.LeftShift)
-                    ? runSpeed
-                    : walkSpeed;
+            float speed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
 
-            characterController.Move(
-                move * speed * Time.deltaTime
-            );
+            Vector3 horizontalMove = move * speed;
 
-            if (characterController.isGrounded &&
-                velocity.y < 0f)
+            if (characterController.isGrounded && velocity.y < 0f)
             {
                 velocity.y = -2f;
             }
+            else
+            {
+                velocity.y += gravity * dt;
+            }
 
-            velocity.y += gravity * Time.deltaTime;
+                        Vector3 totalMove = (horizontalMove + velocity) * dt;
+            characterController.Move(totalMove);
 
-            characterController.Move(
-                velocity * Time.deltaTime
-            );
+            // Extreme emergency fallback: recover player only if they fall below the world floor (-5m)
+            if (transform.position.y < -5.0f)
+            {
+                characterController.enabled = false;
+                transform.position = new Vector3(transform.position.x, 0.05f, transform.position.z);
+                characterController.enabled = true;
+                velocity = Vector3.zero;
+            }
         }
 
         private void LockCursor()
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
-            skipLookDelta = true;
+            skipLookFrames = 10;
         }
 
         private void UnlockCursor()
         {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+            skipLookFrames = 10;
         }
 
         private void ToggleCursor()
@@ -181,10 +234,12 @@ namespace AREscapeRoom.Player
             if (Cursor.lockState == CursorLockMode.Locked)
             {
                 UnlockCursor();
+                Debug.Log("[PlayerController] Mouse unlocked.");
             }
             else
             {
                 LockCursor();
+                Debug.Log("[PlayerController] Mouse locked.");
             }
         }
 
@@ -194,6 +249,28 @@ namespace AREscapeRoom.Player
 
             if (!enabled)
                 velocity = Vector3.zero;
+        }
+
+        private void EnsureSolidFloorCollider()
+        {
+            GameObject ground = GameObject.Find("SolidGround");
+            if (ground == null)
+            {
+                ground = new GameObject("SolidGround");
+                ground.transform.position = new Vector3(0f, -0.01f, 0f);
+            }
+
+            BoxCollider bc = ground.GetComponent<BoxCollider>();
+            if (bc == null)
+            {
+                bc = ground.AddComponent<BoxCollider>();
+            }
+
+            // Solid 2-meter thick floor slab: top surface at y = 0.0f
+            bc.center = new Vector3(0f, -1.0f, -25.0f);
+            bc.size = new Vector3(200f, 2.0f, 200f);
+            bc.isTrigger = false;
+            bc.enabled = true;
         }
     }
 }

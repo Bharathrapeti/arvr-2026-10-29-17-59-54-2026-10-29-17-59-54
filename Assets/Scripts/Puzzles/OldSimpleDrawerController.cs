@@ -197,12 +197,13 @@ namespace AREscapeRoom.Puzzles
 
             if (keyPickup != null)
             {
-                // Mount key inside drawerLeft so it moves with the drawer
+                // Mount key inside drawerLeft so it moves with the drawer, respecting manual editor transform
                 Transform parentDrawer = drawerLeft != null ? drawerLeft : transform;
-                keyPickup.transform.SetParent(parentDrawer, false);
-                keyPickup.transform.localPosition = new Vector3(-0.9f, 1.55f, 0.5f);
-                keyPickup.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
-                keyPickup.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+                keyPickup.transform.SetParent(parentDrawer, true);
+                // Respect visual editor scene coordinates:
+                // keyPickup.transform.localPosition = new Vector3(-0.9f, 1.55f, 0.5f);
+                // keyPickup.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+                // keyPickup.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
             }
         }
 

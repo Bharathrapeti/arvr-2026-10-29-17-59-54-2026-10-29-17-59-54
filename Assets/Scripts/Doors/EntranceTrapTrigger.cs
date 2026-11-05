@@ -1,5 +1,8 @@
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 using AREscapeRoom.Core;
+using AREscapeRoom.UI;
 
 namespace AREscapeRoom.Doors
 {
@@ -7,6 +10,10 @@ namespace AREscapeRoom.Doors
     {
         [Header("Door Reference")]
         [SerializeField] private DoorController entranceDoor;
+
+        [Header("Room 1 UI Controls (Optional direct reference)")]
+        public TextMeshProUGUI roomObjectiveText;
+        public Button hintButton;
 
         [Header("Settings")]
         [SerializeField] private string targetTag = "Player";
@@ -31,6 +38,12 @@ namespace AREscapeRoom.Doors
         private void Start()
         {
             FindPlayer();
+
+            // Hide the hintButton completely by default on game launch
+            if (hintButton != null)
+            {
+                hintButton.gameObject.SetActive(false);
+            }
         }
 
         private void Update()
@@ -98,9 +111,40 @@ namespace AREscapeRoom.Doors
             entranceDoor.CloseDoor();
             entranceDoor.LockDoor();
 
+            // Start timer / set active state in GameManager if present
+            if (GameManager.Instance != null && !GameManager.Instance.IsGameplayActive)
+            {
+                GameManager.Instance.StartGame();
+            }
+
+            // Update Room 1 UI Controls
             if (EscapeRoomManager.Instance != null)
             {
                 EscapeRoomManager.Instance.NotifyRoomEntered();
+                EscapeRoomManager.Instance.SetupRoom1Objective();
+            }
+
+            if (GameUIManager.Instance != null)
+            {
+                GameUIManager.Instance.SetupRoom1Objective();
+            }
+
+            if (roomObjectiveText != null)
+            {
+                roomObjectiveText.text = "You are stuck in Room 1. Find the key hidden somewhere in this room.";
+            }
+
+            if (hintButton != null)
+            {
+                hintButton.gameObject.SetActive(true);
+                hintButton.onClick.RemoveAllListeners();
+                hintButton.onClick.AddListener(() =>
+                {
+                    if (roomObjectiveText != null)
+                    {
+                        roomObjectiveText.text = "💡 Hint: Something useful may be hiding where darkness meets the wall.";
+                    }
+                });
             }
         }
 

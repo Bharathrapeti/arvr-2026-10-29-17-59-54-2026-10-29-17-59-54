@@ -50,6 +50,17 @@ namespace AREscapeRoom.Puzzles
                 HUDController.Instance.SetPrompt("Stylized Key Collected! Exit Door Unlocked.");
             }
 
+            // Interface controls for Room 1: clear hint button and update objective text
+            if (EscapeRoomManager.Instance != null)
+            {
+                EscapeRoomManager.Instance.OnKeyDiscovered();
+            }
+
+            if (GameUIManager.Instance != null)
+            {
+                GameUIManager.Instance.OnKeyDiscovered();
+            }
+
             gameObject.SetActive(false);
         }
     }

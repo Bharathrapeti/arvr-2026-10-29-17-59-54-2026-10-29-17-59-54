@@ -53,8 +53,10 @@ namespace AREscapeRoom.Doors
             if (hasTrapped || doorToTrap == null || other == null) return;
 
             bool isPlayer = other.CompareTag(targetTag) ||
+                            other.gameObject.name.Equals("Player", System.StringComparison.OrdinalIgnoreCase) ||
                             (other.attachedRigidbody != null && other.attachedRigidbody.CompareTag(targetTag)) ||
-                            other.GetComponentInParent<PlayerController>() != null;
+                            other.GetComponentInParent<PlayerController>() != null ||
+                            other.GetComponentInParent<CharacterController>() != null;
 
             if (!isPlayer) return;
 
@@ -78,7 +80,7 @@ namespace AREscapeRoom.Doors
                 GameManager.Instance.SetRoom(roomEntered);
             }
 
-            if (EscapeRoomManager.Instance != null)
+            if (EscapeRoomManager.Instance != null && roomEntered == RoomId.Room2)
             {
                 EscapeRoomManager.Instance.NotifyRoomEntered();
             }

@@ -18,6 +18,7 @@ namespace AREscapeRoom.UI
         [SerializeField] private Image pointerRing;
 
         public static HUDController Instance { get; private set; }
+        public string CurrentPrompt => promptText != null ? promptText.text : "";
 
         private void Awake()
         {

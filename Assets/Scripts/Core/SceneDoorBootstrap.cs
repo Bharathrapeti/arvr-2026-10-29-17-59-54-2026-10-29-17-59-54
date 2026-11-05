@@ -106,7 +106,7 @@ namespace AREscapeRoom.Core
 
             SetupReplacementDoors();
 
-            SetupAlternateShapeObjects();
+            SetupRoom5ShapesAndSockets();
             EnsurePlayerStartingPosition();
 
 
@@ -595,7 +595,8 @@ namespace AREscapeRoom.Core
 
 
 
-                    exitObj.transform.localScale = new Vector3(1.85f, 1.45f, 1f);
+                    // Respect manual editor layout for ExitDoor_Keypad:
+                    // exitObj.transform.localScale = new Vector3(1.85f, 1.45f, 1f);
 
 
 
@@ -1251,7 +1252,8 @@ private static void CutBackWallDoorway()
 
 
 
-            drawerObj.transform.localRotation = Quaternion.Euler(0f, -90f, 0f);
+            // Respect manual editor layout for Old_Simple_Drawer:
+            // drawerObj.transform.localRotation = Quaternion.Euler(0f, -90f, 0f);
 
 
 
@@ -2207,7 +2209,7 @@ private static void CutBackWallDoorway()
 
 
 
-                    dObj.transform.SetParent(room3Transform, false);
+                    dObj.transform.SetParent(room3Transform, true);
 
 
 
@@ -2219,15 +2221,17 @@ private static void CutBackWallDoorway()
 
 
 
-                dObj.transform.localPosition = diamondPositions[k - 1];
+                
+                // Respect visual editor layout coordinates for Blue Diamonds in scene:
+                // dObj.transform.localPosition = diamondPositions[k - 1];
 
 
 
-                dObj.transform.localRotation = Quaternion.Euler(0f, (k - 1) * 72f, 0f);
+                // dObj.transform.localRotation = Quaternion.Euler(0f, (k - 1) * 72f, 0f);
 
 
 
-                dObj.transform.localScale = new Vector3(0.35f, 0.35f, 0.35f);
+                // dObj.transform.localScale = new Vector3(0.35f, 0.35f, 0.35f);
 
 
 
@@ -3563,6 +3567,21 @@ private static void CutBackWallDoorway()
                 vault = pedestal.AddComponent<AREscapeRoom.Puzzles.FinalVaultController>();
             }
 
+            // Check for Door_14_Venge (replaces Door_Final for Room 6 final validation)
+            GameObject door14Obj = GameObject.Find("Door_14_Venge");
+            if (door14Obj == null) door14Obj = GameObject.Find("Door_14");
+            if (door14Obj == null)
+            {
+                foreach (GameObject root in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+                {
+                    if (root.name.IndexOf("Door_14", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        door14Obj = root;
+                        break;
+                    }
+                }
+            }
+
             GameObject doorFinalObj = GameObject.Find("Door_Final");
             if (doorFinalObj == null)
             {
@@ -3574,7 +3593,96 @@ private static void CutBackWallDoorway()
                 }
             }
 
-            if (doorFinalObj != null)
+#if UNITY_EDITOR
+            if (door14Obj == null)
+            {
+                var prefab14 = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Free Wood Door Pack/Prefab/Wood/Door_14/Door_14_Venge.prefab");
+                if (prefab14 != null)
+                {
+                    door14Obj = (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(prefab14);
+                    door14Obj.name = "Door_14_Venge";
+                    GameObject room6 = GameObject.Find("Room_6");
+                    if (room6 != null)
+                    {
+                        door14Obj.transform.SetParent(room6.transform, false);
+                        if (doorFinalObj != null)
+                        {
+                            door14Obj.transform.localPosition = new Vector3(doorFinalObj.transform.localPosition.x, 0.05f, doorFinalObj.transform.localPosition.z);
+                            door14Obj.transform.localRotation = Quaternion.identity;
+                        }
+                        else
+                        {
+                            door14Obj.transform.localPosition = new Vector3(0f, 0.05f, 4.85f);
+                            door14Obj.transform.localRotation = Quaternion.identity;
+                        }
+                    }
+                    else if (doorFinalObj != null)
+                    {
+                        door14Obj.transform.position = new Vector3(doorFinalObj.transform.position.x, 0.05f, doorFinalObj.transform.position.z);
+                        door14Obj.transform.rotation = doorFinalObj.transform.rotation;
+                    }
+                }
+            }
+#endif
+
+            if (door14Obj != null)
+            {
+                door14Obj.SetActive(true);
+                Transform doorLeaf = door14Obj.transform.Find("Door");
+                if (doorLeaf == null)
+                {
+                    foreach (Transform child in door14Obj.transform)
+                    {
+                        if (child.name.Equals("Door", System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            doorLeaf = child;
+                            break;
+                        }
+                    }
+                }
+
+                if (doorLeaf != null)
+                {
+                    // Disable Free Wood Door Pack direct mouse click script
+                    MonoBehaviour[] mbs = doorLeaf.GetComponents<MonoBehaviour>();
+                    for (int i = 0; i < mbs.Length; i++)
+                    {
+                        if (mbs[i] != null && mbs[i].GetType().Name == "Door")
+                        {
+                            mbs[i].enabled = false;
+                        }
+                    }
+
+                    BoxCollider leafCol = doorLeaf.GetComponent<BoxCollider>();
+                    if (leafCol == null) leafCol = doorLeaf.gameObject.AddComponent<BoxCollider>();
+                    leafCol.enabled = true;
+                }
+
+                MonoBehaviour[] rootMbs = door14Obj.GetComponents<MonoBehaviour>();
+                for (int i = 0; i < rootMbs.Length; i++)
+                {
+                    if (rootMbs[i] != null && rootMbs[i].GetType().Name == "Door")
+                    {
+                        rootMbs[i].enabled = false;
+                    }
+                }
+
+                DoorController dc14 = door14Obj.GetComponent<DoorController>();
+                if (dc14 == null) dc14 = door14Obj.AddComponent<DoorController>();
+                dc14.ConfigureHinge(doorLeaf, 0f, -90f, true, "Door_14_Venge");
+
+                AREscapeRoom.Doors.ProgressionDoor pd14 = door14Obj.GetComponent<AREscapeRoom.Doors.ProgressionDoor>();
+                if (pd14 == null) pd14 = door14Obj.AddComponent<AREscapeRoom.Doors.ProgressionDoor>();
+                pd14.Bind(dc14, AREscapeRoom.Core.DoorRequirement.RequiresFinalValidation, false, 6);
+
+                vault.Bind(pd14);
+
+                if (doorFinalObj != null && doorFinalObj != door14Obj)
+                {
+                    doorFinalObj.SetActive(false);
+                }
+            }
+            else if (doorFinalObj != null)
             {
                 AREscapeRoom.Doors.ProgressionDoor pd = doorFinalObj.GetComponent<AREscapeRoom.Doors.ProgressionDoor>();
                 if (pd != null)
@@ -6298,27 +6406,8 @@ private static void CutBackWallDoorway()
 
 
 
-            if (mall.transform.position.y < 0.01f)
-
-
-
-            {
-
-
-
-                Vector3 p = mall.transform.position;
-
-
-
-                p.y = 0.02f;
-
-
-
-                mall.transform.position = p;
-
-
-
-            }
+            // Respect manual editor layout for mall root transform:
+            // if (mall.transform.position.y < 0.01f) { Vector3 p = mall.transform.position; p.y = 0.02f; mall.transform.position = p; }
 
 
 
@@ -6727,11 +6816,8 @@ private static void CutBackWallDoorway()
             GameObject desk = GameObject.Find("Desk Table White");
             if (desk != null)
             {
-                if (desk.transform.position.x < -3.5f || desk.transform.position.y < 0f)
-                {
-                    desk.transform.position = new Vector3(-3.2f, 0.02f, -19.6f);
-                    desk.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
-                }
+                // Respect manual editor layout for Desk Table White:
+                // if (desk.transform.position.x < -3.5f || desk.transform.position.y < 0f) { desk.transform.position = new Vector3(-3.2f, 0.02f, -19.6f); desk.transform.rotation = Quaternion.Euler(0f, 90f, 0f); }
                 desk.SetActive(true);
 
                 Transform drawerT = desk.transform.Find("desk_drawer");
@@ -6859,6 +6945,29 @@ private static void CutBackWallDoorway()
                     pdWhite.BindCipher(cipher);
                 }
 
+                // Auto-close and lock Door_10_White when player enters Room 3
+                GameObject trap3Obj = GameObject.Find("Room3TrapTrigger");
+                if (trap3Obj == null)
+                {
+                    trap3Obj = new GameObject("Room3TrapTrigger");
+                    Vector3 inside = whiteDoorObj.transform.position + Vector3.forward * 2.7f;
+                    inside.y = whiteDoorObj.transform.position.y + 1.5f;
+                    trap3Obj.transform.position = inside;
+                }
+
+                if (trap3Obj != null)
+                {
+                    BoxCollider box = trap3Obj.GetComponent<BoxCollider>();
+                    if (box == null) box = trap3Obj.AddComponent<BoxCollider>();
+                    box.isTrigger = true;
+                    box.size = new Vector3(6f, 3.5f, 2.5f);
+                    box.center = Vector3.zero;
+
+                    RoomTrapTrigger trap = trap3Obj.GetComponent<RoomTrapTrigger>();
+                    if (trap == null) trap = trap3Obj.AddComponent<RoomTrapTrigger>();
+                    trap.Bind(dcWhite, RoomId.Room3, true);
+                }
+
                 GameObject oldR2Door = GameObject.Find("Door_R2_R3");
                 if (oldR2Door != null && oldR2Door != whiteDoorObj)
                 {
@@ -6907,6 +7016,29 @@ private static void CutBackWallDoorway()
                 ProgressionDoor pd13 = black13DoorObj.GetComponent<ProgressionDoor>();
                 if (pd13 == null) pd13 = black13DoorObj.AddComponent<ProgressionDoor>();
                 pd13.Bind(dc13, DoorRequirement.RequiresGems, true, 4);
+
+                // Auto-close and lock Door_13_Black when player enters Room 4
+                GameObject trap4Obj = GameObject.Find("Room4TrapTrigger");
+                if (trap4Obj == null)
+                {
+                    trap4Obj = new GameObject("Room4TrapTrigger");
+                    Vector3 inside = black13DoorObj.transform.position + Vector3.forward * 2.7f;
+                    inside.y = black13DoorObj.transform.position.y + 1.5f;
+                    trap4Obj.transform.position = inside;
+                }
+
+                if (trap4Obj != null)
+                {
+                    BoxCollider box = trap4Obj.GetComponent<BoxCollider>();
+                    if (box == null) box = trap4Obj.AddComponent<BoxCollider>();
+                    box.isTrigger = true;
+                    box.size = new Vector3(6f, 3.5f, 2.5f);
+                    box.center = Vector3.zero;
+
+                    RoomTrapTrigger trap = trap4Obj.GetComponent<RoomTrapTrigger>();
+                    if (trap == null) trap = trap4Obj.AddComponent<RoomTrapTrigger>();
+                    trap.Bind(dc13, RoomId.Room4, true);
+                }
 
                 GameObject oldR3Door = GameObject.Find("Door_R3_R4");
                 if (oldR3Door != null && oldR3Door != black13DoorObj)
@@ -6957,6 +7089,29 @@ private static void CutBackWallDoorway()
                 if (pd10 == null) pd10 = black10DoorObj.AddComponent<ProgressionDoor>();
                 pd10.Bind(dc10, DoorRequirement.RequiresColorSequence, true, 5);
 
+                // Auto-close and lock Door_10_Black when player enters Room 5
+                GameObject trap5Obj = GameObject.Find("Room5TrapTrigger");
+                if (trap5Obj == null)
+                {
+                    trap5Obj = new GameObject("Room5TrapTrigger");
+                    Vector3 inside = black10DoorObj.transform.position + Vector3.forward * 2.7f;
+                    inside.y = black10DoorObj.transform.position.y + 1.5f;
+                    trap5Obj.transform.position = inside;
+                }
+
+                if (trap5Obj != null)
+                {
+                    BoxCollider box = trap5Obj.GetComponent<BoxCollider>();
+                    if (box == null) box = trap5Obj.AddComponent<BoxCollider>();
+                    box.isTrigger = true;
+                    box.size = new Vector3(6f, 3.5f, 2.5f);
+                    box.center = Vector3.zero;
+
+                    RoomTrapTrigger trap = trap5Obj.GetComponent<RoomTrapTrigger>();
+                    if (trap == null) trap = trap5Obj.AddComponent<RoomTrapTrigger>();
+                    trap.Bind(dc10, RoomId.Room5, true);
+                }
+
                 GameObject oldR4Door = GameObject.Find("Door_R4_R5");
                 if (oldR4Door != null && oldR4Door != black10DoorObj)
                 {
@@ -6964,7 +7119,21 @@ private static void CutBackWallDoorway()
                 }
             }
 
-            // 4. UniqueDoor (replaces Door_R5_R6: Room 5 -> Room 6, 4 Shapes, double leaf opens inward)
+            // 4. Door_15_Coffe / UniqueDoor (replaces Door_R5_R6: Room 5 -> Room 6, 4 Shapes required, auto-opens inward)
+            GameObject door15Obj = GameObject.Find("Door_15_Coffe");
+            if (door15Obj == null) door15Obj = GameObject.Find("Door_15_Coffee");
+            if (door15Obj == null)
+            {
+                foreach (GameObject root in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+                {
+                    if (root.name.IndexOf("Door_15", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        door15Obj = root;
+                        break;
+                    }
+                }
+            }
+
             GameObject uniqueDoorObj = GameObject.Find("UniqueDoor");
             if (uniqueDoorObj == null)
             {
@@ -6978,7 +7147,114 @@ private static void CutBackWallDoorway()
                 }
             }
 
-            if (uniqueDoorObj != null)
+#if UNITY_EDITOR
+            if (door15Obj == null)
+            {
+                var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Free Wood Door Pack/Prefab/Wood/Door_15/Door_15_Coffe.prefab");
+                if (prefab != null)
+                {
+                    door15Obj = (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(prefab);
+                    door15Obj.name = "Door_15_Coffe";
+                    if (uniqueDoorObj != null)
+                    {
+                        door15Obj.transform.position = uniqueDoorObj.transform.position;
+                        door15Obj.transform.rotation = uniqueDoorObj.transform.rotation;
+                        door15Obj.transform.localScale = uniqueDoorObj.transform.localScale;
+                    }
+                    else
+                    {
+                        door15Obj.transform.position = new Vector3(-0.03f, 0.05f, 24.775f);
+                        door15Obj.transform.rotation = Quaternion.identity;
+                    }
+                }
+            }
+#endif
+
+            if (door15Obj != null)
+            {
+                door15Obj.SetActive(true);
+                Transform doorLeaf = door15Obj.transform.Find("Door");
+                if (doorLeaf == null)
+                {
+                    foreach (Transform child in door15Obj.transform)
+                    {
+                        if (child.name.Equals("Door", System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            doorLeaf = child;
+                            break;
+                        }
+                    }
+                }
+
+                if (doorLeaf != null)
+                {
+                    // Disable default Free Wood Door Pack mouse-click script so only puzzle progression opens it
+                    MonoBehaviour[] mbs = doorLeaf.GetComponents<MonoBehaviour>();
+                    for (int i = 0; i < mbs.Length; i++)
+                    {
+                        if (mbs[i] != null && mbs[i].GetType().Name == "Door")
+                        {
+                            mbs[i].enabled = false;
+                        }
+                    }
+
+                    BoxCollider leafCol = doorLeaf.GetComponent<BoxCollider>();
+                    if (leafCol == null) leafCol = doorLeaf.gameObject.AddComponent<BoxCollider>();
+                    leafCol.enabled = true;
+                }
+
+                MonoBehaviour[] rootMbs = door15Obj.GetComponents<MonoBehaviour>();
+                for (int i = 0; i < rootMbs.Length; i++)
+                {
+                    if (rootMbs[i] != null && rootMbs[i].GetType().Name == "Door")
+                    {
+                        rootMbs[i].enabled = false;
+                    }
+                }
+
+                DoorController dc15 = door15Obj.GetComponent<DoorController>();
+                if (dc15 == null) dc15 = door15Obj.AddComponent<DoorController>();
+                dc15.ConfigureHinge(doorLeaf, 0f, -90f, true, "Door_15_Coffe");
+
+                ProgressionDoor pd15 = door15Obj.GetComponent<ProgressionDoor>();
+                if (pd15 == null) pd15 = door15Obj.AddComponent<ProgressionDoor>();
+                pd15.Bind(dc15, DoorRequirement.RequiresShapes, true, 6);
+
+                // Auto-close and lock Door_15_Coffe when player enters Room 6
+                GameObject trap6Obj = GameObject.Find("Room6TrapTrigger");
+                if (trap6Obj == null)
+                {
+                    trap6Obj = new GameObject("Room6TrapTrigger");
+                    Vector3 inside = door15Obj.transform.position + Vector3.forward * 2.7f;
+                    inside.y = door15Obj.transform.position.y + 1.5f;
+                    trap6Obj.transform.position = inside;
+                }
+
+                if (trap6Obj != null)
+                {
+                    BoxCollider box = trap6Obj.GetComponent<BoxCollider>();
+                    if (box == null) box = trap6Obj.AddComponent<BoxCollider>();
+                    box.isTrigger = true;
+                    box.size = new Vector3(6f, 3.5f, 2.5f);
+                    box.center = Vector3.zero;
+
+                    RoomTrapTrigger trap = trap6Obj.GetComponent<RoomTrapTrigger>();
+                    if (trap == null) trap = trap6Obj.AddComponent<RoomTrapTrigger>();
+                    trap.Bind(dc15, RoomId.Room6, true);
+                }
+
+                if (uniqueDoorObj != null && uniqueDoorObj != door15Obj)
+                {
+                    uniqueDoorObj.SetActive(false);
+                }
+
+                GameObject oldR5Door = GameObject.Find("Door_R5_R6");
+                if (oldR5Door != null && oldR5Door != door15Obj)
+                {
+                    oldR5Door.SetActive(false);
+                }
+            }
+            else if (uniqueDoorObj != null)
             {
                 uniqueDoorObj.SetActive(true);
                 Transform frame001 = uniqueDoorObj.transform.Find("Frame.001"); // Right leaf
@@ -7011,6 +7287,29 @@ private static void CutBackWallDoorway()
                 if (pdUnique == null) pdUnique = uniqueDoorObj.AddComponent<ProgressionDoor>();
                 pdUnique.Bind(dcUnique, DoorRequirement.RequiresShapes, true, 6);
 
+                // Auto-close and lock UniqueDoor when player enters Room 6
+                GameObject trap6Obj = GameObject.Find("Room6TrapTrigger");
+                if (trap6Obj == null)
+                {
+                    trap6Obj = new GameObject("Room6TrapTrigger");
+                    Vector3 inside = uniqueDoorObj.transform.position + Vector3.forward * 2.7f;
+                    inside.y = uniqueDoorObj.transform.position.y + 1.5f;
+                    trap6Obj.transform.position = inside;
+                }
+
+                if (trap6Obj != null)
+                {
+                    BoxCollider box = trap6Obj.GetComponent<BoxCollider>();
+                    if (box == null) box = trap6Obj.AddComponent<BoxCollider>();
+                    box.isTrigger = true;
+                    box.size = new Vector3(6f, 3.5f, 2.5f);
+                    box.center = Vector3.zero;
+
+                    RoomTrapTrigger trap = trap6Obj.GetComponent<RoomTrapTrigger>();
+                    if (trap == null) trap = trap6Obj.AddComponent<RoomTrapTrigger>();
+                    trap.Bind(dcUnique, RoomId.Room6, true);
+                }
+
                 GameObject oldR5Door = GameObject.Find("Door_R5_R6");
                 if (oldR5Door != null && oldR5Door != uniqueDoorObj)
                 {
@@ -7018,7 +7317,7 @@ private static void CutBackWallDoorway()
                 }
             }
 
-            Debug.Log("[SceneDoorBootstrap] Configured replacement doors (Door_10_White, Door_13_Black, Door_10_Black, UniqueDoor).");
+            Debug.Log("[SceneDoorBootstrap] Configured replacement doors (Door_10_White, Door_13_Black, Door_10_Black, Door_15_Coffe / UniqueDoor).");
         }
 
         private static void EnsurePlayerStartingPosition()
@@ -7026,76 +7325,155 @@ private static void CutBackWallDoorway()
             // Do not override player position - preserve user placement at Main Camera
         }
 
-                private static void SetupAlternateShapeObjects()
+        private static void SetupRoom5ShapesAndSockets()
         {
             GameObject room5 = GameObject.Find("Room_5");
-            var puzzle = room5 != null ? room5.GetComponent<ShapePlacementPuzzle>() : null;
+            if (room5 == null)
+            {
+                foreach (var r in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+                {
+                    Transform t = r.transform.Find("Room_5");
+                    if (t != null) { room5 = t.gameObject; break; }
+                }
+            }
+
+            // 1. Deactivate old primitive placeholder shapes inside Room_5 and in scene
+            // Deactivate old procedural placeholder shapes if present
+            string[] primitiveNames = new string[] { "StarCore", "StarCross", "Shape_Circle", "Shape_Triangle", "Shape_Star", "Shape_Square" };
+            foreach (var name in primitiveNames)
+            {
+                if (room5 != null)
+                {
+                    Transform prim = room5.transform.Find(name);
+                    if (prim != null) prim.gameObject.SetActive(false);
+                }
+                GameObject obj = GameObject.Find(name);
+                if (obj != null) obj.SetActive(false);
+            }
+
+            // Deactivate procedural Door_R5_R6 if present
+            GameObject doorR5 = GameObject.Find("Door_R5_R6");
+            if (doorR5 != null) doorR5.SetActive(false);
+
+            var puzzle = room5 != null ? room5.GetComponent<AREscapeRoom.Puzzles.ShapePlacementPuzzle>() : null;
             if (puzzle == null && room5 != null)
             {
-                puzzle = room5.AddComponent<ShapePlacementPuzzle>();
+                puzzle = room5.AddComponent<AREscapeRoom.Puzzles.ShapePlacementPuzzle>();
             }
 
-            // Find all transforms in the scene
-            var allTransforms = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-
-            // Shape name mappings for the 4 custom shapes placed by user in Room 5
-            foreach (var t in allTransforms)
+            // 2. Configure the 4 3D geometry objects: Traingle_Shape, Star_Shape, Square_Shape, Circle_Shape
+            var shapeConfigs = new (string[] names, AREscapeRoom.Puzzles.ShapeType type, Vector3 defaultPos)[]
             {
-                if (t == null) continue;
-                string lower = t.name.ToLower();
+                (new string[] { "Traingle_shape", "Traingle_Shape", "Triangle_Shape", "triangle_shape" }, AREscapeRoom.Puzzles.ShapeType.Triangle, new Vector3(-1.5f, 0.22f, 0.0f)),
+                (new string[] { "Star_Shape", "star_shape", "StarShape" }, AREscapeRoom.Puzzles.ShapeType.Star, new Vector3(-0.5f, 0.22f, 0.0f)),
+                (new string[] { "Square_Shape", "square_shape", "SquareShape" }, AREscapeRoom.Puzzles.ShapeType.Square, new Vector3(0.5f, 0.22f, 0.0f)),
+                (new string[] { "Circle_Shape", "circle_shape", "CircleShape" }, AREscapeRoom.Puzzles.ShapeType.Circle, new Vector3(1.5f, 0.22f, 0.0f))
+            };
 
-                // Skip sockets, labels, walls, doors, buttons, mall environment, triggers
-                if (lower.StartsWith("socket") || lower.Contains("socketlabel") || lower.Contains("hint") ||
-                    lower.Contains("wall") || lower.Contains("door") || lower.Contains("btn") ||
-                    lower.Contains("mall") || lower.Contains("roomzone") || lower.Contains("player") ||
-                    lower.Contains("camera") || lower.Contains("floor") || lower.Contains("ceiling"))
-                    continue;
-
-// Preserving all shapes placed in Room 5
-
-                ShapeType? matchedType = null;
-                if (lower == "traingle_shape" || lower == "triangle_shape" || lower == "shape_triangle" || (lower.Contains("triang") && !lower.Contains("socket")) || (lower.Contains("traing") && !lower.Contains("socket")))
-                    matchedType = ShapeType.Triangle;
-                else if (lower == "star_shape" || lower == "shape_star" || (lower.Contains("star") && !lower.Contains("socket") && !lower.Contains("starcourt")))
-                    matchedType = ShapeType.Star;
-                else if (lower == "circle_shape" || lower == "shape_circle" || (lower.Contains("circle") && !lower.Contains("socket")))
-                    matchedType = ShapeType.Circle;
-                else if (lower == "square_shape" || lower == "shape_square" || (lower.Contains("square") && !lower.Contains("socket")))
-                    matchedType = ShapeType.Square;
-
-                if (matchedType.HasValue)
+            foreach (var cfg in shapeConfigs)
+            {
+                GameObject shapeObj = null;
+                if (room5 != null)
                 {
-                    // Only attach ShapeObject to the top-level shape GameObject, not sub-parts
-                    if (t.GetComponentInParent<ShapeObject>() != null && t.GetComponent<ShapeObject>() == null)
+                    foreach (Transform child in room5.transform)
                     {
-                        // Sub-part of an already handled shape
-                        continue;
+                        foreach (var n in cfg.names)
+                        {
+                            if (string.Equals(child.gameObject.name, n, System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                shapeObj = child.gameObject;
+                                break;
+                            }
+                        }
+                        if (shapeObj != null) break;
                     }
+                }
 
-                    ShapeObject so = t.GetComponent<ShapeObject>();
-                    if (so == null)
+                if (shapeObj == null)
+                {
+                    foreach (var n in cfg.names)
                     {
-                        so = t.gameObject.AddComponent<ShapeObject>();
+                        shapeObj = GameObject.Find(n);
+                        if (shapeObj != null) break;
                     }
-                    so.Bind(matchedType.Value);
-                    so.EnsureCollidersAndPhysics();
+                }
 
-                    // CRITICAL: DO NOT modify t.localPosition, t.localRotation, or t.localScale!
-                    // Preserve the exact placement the user saved in the scene.
-                    Debug.Log($"[SceneDoorBootstrap] Preserved user placement for {t.name} ({matchedType.Value}) at local pos {t.localPosition}.");
+                if (shapeObj != null)
+                {
+                    shapeObj.SetActive(true);
+                    var shapeComp = shapeObj.GetComponent<AREscapeRoom.Puzzles.ShapeObject>();
+                    if (shapeComp == null)
+                    {
+                        shapeComp = shapeObj.AddComponent<AREscapeRoom.Puzzles.ShapeObject>();
+                    }
+                    shapeComp.Bind(cfg.type);
+
+                    // Ground the shape on the floor in front of the player if not already placed
+                    // Respect manual editor layout for Room 5 shapes:
+                    // if (!shapeComp.Placed && (shapeObj.transform.parent == null || (room5 != null && shapeObj.transform.parent == room5.transform))) { shapeObj.transform.localPosition = cfg.defaultPos; shapeObj.transform.localRotation = Quaternion.identity; shapeObj.transform.localScale = Vector3.one; }
+
+                    shapeComp.EnsureCollidersAndPhysics();
+                    Debug.Log($"Successfully initialized 3D shape: {shapeObj.name} as {cfg.type}");
+                }
+                else
+                {
+                    Debug.LogWarning($"Could not find shape object for {cfg.type}!");
                 }
             }
 
-            // Ensure sockets are linked to puzzle
-            if (room5 != null)
+            // 3. Configure the 4 Sockets & Labels: Socket_Traingle/Triangle, Socket_Star, Socket_Circle, Socket_Square
+            var socketConfigs = new (string[] names, AREscapeRoom.Puzzles.ShapeType type, string labelName)[]
             {
-                var sockets = room5.GetComponentsInChildren<ShapeSocket>(true);
-                foreach (var s in sockets)
+                (new string[] { "Socket_Triangle", "Socket_Traingle" }, AREscapeRoom.Puzzles.ShapeType.Triangle, "SocketLabel_Triangle"),
+                (new string[] { "Socket_Star" }, AREscapeRoom.Puzzles.ShapeType.Star, "SocketLabel_Star"),
+                (new string[] { "Socket_Square" }, AREscapeRoom.Puzzles.ShapeType.Square, "SocketLabel_Square"),
+                (new string[] { "Socket_Circle" }, AREscapeRoom.Puzzles.ShapeType.Circle, "SocketLabel_Circle")
+            };
+
+            foreach (var sc in socketConfigs)
+            {
+                GameObject sockObj = null;
+                foreach (var n in sc.names)
                 {
-                    s.DetectSocketType();
-                    s.Bind(s.AcceptedType, puzzle);
+                    sockObj = GameObject.Find(n);
+                    if (sockObj != null) break;
+                }
+
+                if (sockObj != null)
+                {
+                    sockObj.SetActive(true);
+                    var sockComp = sockObj.GetComponent<AREscapeRoom.Puzzles.ShapeSocket>();
+                    if (sockComp == null)
+                    {
+                        sockComp = sockObj.AddComponent<AREscapeRoom.Puzzles.ShapeSocket>();
+                    }
+                    sockComp.Bind(sc.type, puzzle);
+
+                    Collider sockCol = sockObj.GetComponent<Collider>();
+                    if (sockCol == null)
+                    {
+                        BoxCollider bc = sockObj.AddComponent<BoxCollider>();
+                        bc.size = new Vector3(1f, 1f, 0.4f);
+                        bc.isTrigger = false;
+                    }
+                    else
+                    {
+                        sockCol.enabled = true;
+                    }
+                }
+
+                GameObject lblObj = GameObject.Find(sc.labelName);
+                if (lblObj == null && sc.type == AREscapeRoom.Puzzles.ShapeType.Triangle)
+                {
+                    lblObj = GameObject.Find("SocketLabel_Traingle");
+                }
+                if (lblObj != null)
+                {
+                    lblObj.SetActive(true);
                 }
             }
+
+            Debug.Log("[SceneDoorBootstrap] Successfully configured Room 5 shapes, sockets, and labels.");
         }
     }
 }

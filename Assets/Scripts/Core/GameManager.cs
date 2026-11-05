@@ -162,6 +162,13 @@ namespace AREscapeRoom.Core
             NotifyTimer();
         }
 
+        public void StartGame()
+        {
+            timerRunning = true;
+            NotifyState();
+            NotifyTimer();
+        }
+
         private void Update()
         {
             if (!timerRunning ||
@@ -499,9 +506,7 @@ namespace AREscapeRoom.Core
 
                 case DoorRequirement.RequiresShapes:
 
-                    return shapePuzzleCompleted
-                        ? ""
-                        : "Place All 4 Shapes";
+                    return shapePuzzleCompleted ? "" : "4 Shapes Required";
 
                 case DoorRequirement.RequiresFinalValidation:
 

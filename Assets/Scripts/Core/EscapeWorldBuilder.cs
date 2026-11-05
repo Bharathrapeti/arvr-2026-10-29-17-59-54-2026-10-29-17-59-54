@@ -1042,7 +1042,11 @@ namespace AREscapeRoom.Core
             {
                 door.SetActive(false);
             }
-            else if (name == "Door_R5_R6" && (GameObject.Find("UniqueDoor") != null || GameObject.Find("unique door") != null))
+            else if (name == "Door_R5_R6" && (GameObject.Find("Door_15_Coffe") != null || GameObject.Find("Door_15_Coffee") != null || GameObject.Find("UniqueDoor") != null || GameObject.Find("unique door") != null))
+            {
+                door.SetActive(false);
+            }
+            else if (name == "Door_Final" && (GameObject.Find("Door_14_Venge") != null || GameObject.Find("Door_14") != null))
             {
                 door.SetActive(false);
             }

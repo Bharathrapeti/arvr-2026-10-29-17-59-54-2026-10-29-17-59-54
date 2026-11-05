@@ -13,12 +13,27 @@ namespace AREscapeRoom.Puzzles
         private Collider[] colliders;
         private Rigidbody body;
 
-        public ShapeType Type => shapeType;
+        public ShapeType Type
+        {
+            get
+            {
+                ShapeObject rootShape = GetRootShape();
+                if (rootShape != null && rootShape != this)
+                    return rootShape.Type;
+                return shapeType;
+            }
+        }
+
         public bool Placed => placed;
+
         public bool CanInteract
         {
             get
             {
+                ShapeObject rootShape = GetRootShape();
+                if (rootShape != null && rootShape != this)
+                    return rootShape.CanInteract;
+
                 if (placed || held) return false;
                 var player = Object.FindFirstObjectByType<PlayerInteraction>();
                 if (player != null && player.Carried != null) return false;
@@ -30,6 +45,10 @@ namespace AREscapeRoom.Puzzles
         {
             get
             {
+                ShapeObject rootShape = GetRootShape();
+                if (rootShape != null && rootShape != this)
+                    return rootShape.Prompt;
+
                 switch (shapeType)
                 {
                     case ShapeType.Triangle: return "[E] Pick up Traingle Shape";
@@ -39,6 +58,12 @@ namespace AREscapeRoom.Puzzles
                     default: return $"[E] Pick up {shapeType} Shape";
                 }
             }
+        }
+
+        private ShapeObject GetRootShape()
+        {
+            if (transform.parent == null) return null;
+            return transform.parent.GetComponentInParent<ShapeObject>();
         }
 
         public void Bind(ShapeType type)
@@ -67,65 +92,125 @@ namespace AREscapeRoom.Puzzles
 
         public void EnsureCollidersAndPhysics()
         {
-            colliders = GetComponentsInChildren<Collider>(true);
-            if (colliders == null || colliders.Length == 0)
+            // 1. Get MeshFilter on this GameObject or any child to determine local mesh bounds
+            MeshFilter mf = GetComponent<MeshFilter>();
+            if (mf == null) mf = GetComponentInChildren<MeshFilter>(true);
+
+            Vector3 localCenter = Vector3.zero;
+            Vector3 localSize = new Vector3(0.9f, 0.9f, 0.9f);
+
+            if (mf != null && mf.sharedMesh != null)
             {
-                var mf = GetComponentInChildren<MeshFilter>(true);
+                localCenter = mf.gameObject == gameObject
+                    ? mf.sharedMesh.bounds.center
+                    : transform.InverseTransformPoint(mf.transform.TransformPoint(mf.sharedMesh.bounds.center));
+
+                Vector3 sz = mf.sharedMesh.bounds.size;
+                localSize = new Vector3(
+                    Mathf.Max(sz.x * 1.5f, 0.9f),
+                    Mathf.Max(sz.y * 1.5f, 0.7f),
+                    Mathf.Max(sz.z * 1.5f, 0.9f)
+                );
+            }
+
+            // 2. Ensure solid BoxCollider on this GameObject
+            BoxCollider rootBox = GetComponent<BoxCollider>();
+            if (rootBox == null) rootBox = gameObject.AddComponent<BoxCollider>();
+            rootBox.center = localCenter;
+            rootBox.size = localSize;
+            rootBox.enabled = true;
+            rootBox.isTrigger = false;
+
+            // 3. Keep MeshCollider enabled as convex for precise collision
+            MeshCollider mc = GetComponent<MeshCollider>();
+            if (mc == null && mf != null && mf.sharedMesh != null)
+            {
+                mc = gameObject.AddComponent<MeshCollider>();
+            }
+            if (mc != null)
+            {
                 if (mf != null && mf.sharedMesh != null)
                 {
-                    var mc = gameObject.AddComponent<MeshCollider>();
                     mc.sharedMesh = mf.sharedMesh;
-                    mc.convex = true;
-                    colliders = new Collider[] { mc };
+                }
+                mc.convex = true;
+                mc.enabled = true;
+                mc.isTrigger = false;
+            }
+
+            // 4. Ensure Rigidbody is kinematic
+            body = GetComponent<Rigidbody>();
+            if (body == null) body = gameObject.AddComponent<Rigidbody>();
+            body.isKinematic = true;
+            body.useGravity = false;
+
+            // 5. Also ensure any child MeshFilter has a BoxCollider and child ShapeObject forwarder
+            MeshFilter[] childMfs = GetComponentsInChildren<MeshFilter>(true);
+            for (int i = 0; i < childMfs.Length; i++)
+            {
+                var cmf = childMfs[i];
+                if (cmf == null || cmf.gameObject == gameObject) continue;
+
+                BoxCollider childBox = cmf.gameObject.GetComponent<BoxCollider>();
+                if (childBox == null) childBox = cmf.gameObject.AddComponent<BoxCollider>();
+                if (cmf.sharedMesh != null)
+                {
+                    childBox.center = cmf.sharedMesh.bounds.center;
+                    Vector3 sz = cmf.sharedMesh.bounds.size;
+                    childBox.size = new Vector3(
+                        Mathf.Max(sz.x * 1.4f, 0.8f),
+                        Mathf.Max(sz.y * 1.4f, 0.6f),
+                        Mathf.Max(sz.z * 1.4f, 0.8f)
+                    );
                 }
                 else
                 {
-                    var bc = gameObject.AddComponent<BoxCollider>();
-                    bc.size = new Vector3(0.6f, 0.15f, 0.6f);
-                    colliders = new Collider[] { bc };
+                    childBox.center = Vector3.zero;
+                    childBox.size = new Vector3(0.8f, 0.8f, 0.8f);
                 }
-            }
-            else
-            {
-                // Ensure any existing MeshCollider is convex so physics / CharacterController behaves cleanly
-                for (int i = 0; i < colliders.Length; i++)
-                {
-                    if (colliders[i] is MeshCollider meshCol)
-                    {
-                        meshCol.convex = true;
-                    }
-                }
+                childBox.enabled = true;
+                childBox.isTrigger = false;
+
+                ShapeObject childShape = cmf.gameObject.GetComponent<ShapeObject>();
+                if (childShape == null) childShape = cmf.gameObject.AddComponent<ShapeObject>();
+                childShape.Bind(shapeType);
             }
 
-            body = GetComponent<Rigidbody>();
-            if (body == null)
+            colliders = GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < colliders.Length; i++)
             {
-                body = gameObject.AddComponent<Rigidbody>();
+                if (colliders[i] != null)
+                {
+                    colliders[i].enabled = true;
+                    colliders[i].isTrigger = false;
+                }
             }
-            body.isKinematic = true;
         }
 
         public void Interact(GameObject instigator)
         {
+            // If this component is on a child, delegate to parent ShapeObject
+            ShapeObject rootShape = GetRootShape();
+            if (rootShape != null && rootShape != this)
+            {
+                rootShape.Interact(instigator);
+                return;
+            }
+
             if (placed || held)
                 return;
 
             PlayerInteraction interaction = instigator.GetComponent<PlayerInteraction>();
-
             if (interaction == null)
                 interaction = instigator.GetComponentInParent<PlayerInteraction>();
 
-            if (interaction == null)
-                return;
-
-            if (interaction.Carried != null)
+            if (interaction == null || interaction.Carried != null)
                 return;
 
             held = true;
             SetPhysics(false);
             interaction.SetCarried(this);
 
-            // Carry shape directly attached to user hands / hold point
             if (interaction.HoldPoint != null)
             {
                 transform.SetParent(interaction.HoldPoint, false);
@@ -146,8 +231,7 @@ namespace AREscapeRoom.Puzzles
             if (player != null)
             {
                 float z = player.transform.position.z;
-                // Room 5 is located between z = 14f and z = 26f
-                if (z >= 14f && z <= 26f)
+                if (z >= -25.0f && z <= -15.0f)
                     return true;
             }
 

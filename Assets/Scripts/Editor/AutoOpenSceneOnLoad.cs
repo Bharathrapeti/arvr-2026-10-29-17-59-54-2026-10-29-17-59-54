@@ -128,6 +128,13 @@ namespace AREscapeRoom.Editor
 
 
             EditorApplication.delayCall += InitializeEditorScene;
+            EditorApplication.playModeStateChanged += (PlayModeStateChange state) =>
+            {
+                if (state == PlayModeStateChange.ExitingEditMode)
+                {
+                    EditorSceneManager.SaveOpenScenes();
+                }
+            };
 
 
 
@@ -1063,55 +1070,8 @@ namespace AREscapeRoom.Editor
 
 
 
-                if (root.transform.position.y < 0.01f)
-
-
-
-
-
-
-
-                {
-
-
-
-
-
-
-
-                    Vector3 pos = root.transform.position;
-
-
-
-
-
-
-
-                    pos.y = 0.02f;
-
-
-
-
-
-
-
-                    root.transform.position = pos;
-
-
-
-
-
-
-
-                    EditorUtility.SetDirty(root.transform);
-
-
-
-
-
-
-
-                }
+                // Respect manual editor layout for mall root:
+                // if (root.transform.position.y < 0.01f) { Vector3 pos = root.transform.position; pos.y = 0.02f; root.transform.position = pos; EditorUtility.SetDirty(root.transform); }
 
 
 
@@ -2481,7 +2441,7 @@ namespace AREscapeRoom.Editor
 
             EnsureDeskTableWhiteVisible();
 
-            EnsureShapeObjectsConfigured();
+            SetupRoom5ShapesAndSockets();
             EnsurePlayerAtStartPosition();
 
 
@@ -3164,7 +3124,8 @@ namespace AREscapeRoom.Editor
 
 
 
-                dObj.transform.localPosition = diamondPositions[k - 1];
+                // Respect visual editor layout coordinates for existing diamonds in scene:
+                // dObj.transform.localPosition = diamondPositions[k - 1];
 
 
 
@@ -3172,7 +3133,7 @@ namespace AREscapeRoom.Editor
 
 
 
-                dObj.transform.localRotation = Quaternion.Euler(0f, (k - 1) * 72f, 0f);
+                // dObj.transform.localRotation = Quaternion.Euler(0f, (k - 1) * 72f, 0f);
 
 
 
@@ -3180,7 +3141,7 @@ namespace AREscapeRoom.Editor
 
 
 
-                dObj.transform.localScale = new Vector3(0.35f, 0.35f, 0.35f);
+                // dObj.transform.localScale = new Vector3(0.35f, 0.35f, 0.35f);
 
 
 
@@ -7335,6 +7296,21 @@ namespace AREscapeRoom.Editor
                 changed = true;
             }
 
+            // Check for Door_14_Venge (replaces Door_Final for Room 6 final validation)
+            GameObject door14Obj = GameObject.Find("Door_14_Venge");
+            if (door14Obj == null) door14Obj = GameObject.Find("Door_14");
+            if (door14Obj == null)
+            {
+                foreach (GameObject root in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+                {
+                    if (root.name.IndexOf("Door_14", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        door14Obj = root;
+                        break;
+                    }
+                }
+            }
+
             GameObject doorFinalObj = GameObject.Find("Door_Final");
             if (doorFinalObj == null)
             {
@@ -7346,7 +7322,96 @@ namespace AREscapeRoom.Editor
                 }
             }
 
-            if (doorFinalObj != null)
+            if (door14Obj == null)
+            {
+                var prefab14 = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Free Wood Door Pack/Prefab/Wood/Door_14/Door_14_Venge.prefab");
+                if (prefab14 != null)
+                {
+                    door14Obj = (GameObject)PrefabUtility.InstantiatePrefab(prefab14);
+                    door14Obj.name = "Door_14_Venge";
+                    GameObject room6 = GameObject.Find("Room_6");
+                    if (room6 != null)
+                    {
+                        door14Obj.transform.SetParent(room6.transform, false);
+                        if (doorFinalObj != null)
+                        {
+                            door14Obj.transform.localPosition = new Vector3(doorFinalObj.transform.localPosition.x, 0.05f, doorFinalObj.transform.localPosition.z);
+                            door14Obj.transform.localRotation = Quaternion.identity;
+                        }
+                        else
+                        {
+                            door14Obj.transform.localPosition = new Vector3(0f, 0.05f, 4.85f);
+                            door14Obj.transform.localRotation = Quaternion.identity;
+                        }
+                    }
+                    else if (doorFinalObj != null)
+                    {
+                        door14Obj.transform.position = new Vector3(doorFinalObj.transform.position.x, 0.05f, doorFinalObj.transform.position.z);
+                        door14Obj.transform.rotation = doorFinalObj.transform.rotation;
+                    }
+                    changed = true;
+                }
+            }
+
+            if (door14Obj != null)
+            {
+                door14Obj.SetActive(true);
+                Transform doorLeaf = door14Obj.transform.Find("Door");
+                if (doorLeaf == null)
+                {
+                    foreach (Transform child in door14Obj.transform)
+                    {
+                        if (child.name.Equals("Door", System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            doorLeaf = child;
+                            break;
+                        }
+                    }
+                }
+
+                if (doorLeaf != null)
+                {
+                    // Disable Free Wood Door Pack direct mouse click script
+                    MonoBehaviour[] mbs = doorLeaf.GetComponents<MonoBehaviour>();
+                    for (int i = 0; i < mbs.Length; i++)
+                    {
+                        if (mbs[i] != null && mbs[i].GetType().Name == "Door")
+                        {
+                            mbs[i].enabled = false;
+                        }
+                    }
+
+                    BoxCollider leafCol = doorLeaf.GetComponent<BoxCollider>();
+                    if (leafCol == null) leafCol = doorLeaf.gameObject.AddComponent<BoxCollider>();
+                    leafCol.enabled = true;
+                }
+
+                MonoBehaviour[] rootMbs = door14Obj.GetComponents<MonoBehaviour>();
+                for (int i = 0; i < rootMbs.Length; i++)
+                {
+                    if (rootMbs[i] != null && rootMbs[i].GetType().Name == "Door")
+                    {
+                        rootMbs[i].enabled = false;
+                    }
+                }
+
+                AREscapeRoom.Doors.DoorController dc14 = door14Obj.GetComponent<AREscapeRoom.Doors.DoorController>();
+                if (dc14 == null) dc14 = door14Obj.AddComponent<AREscapeRoom.Doors.DoorController>();
+                dc14.ConfigureHinge(doorLeaf, 0f, -90f, true, "Door_14_Venge");
+
+                AREscapeRoom.Doors.ProgressionDoor pd14 = door14Obj.GetComponent<AREscapeRoom.Doors.ProgressionDoor>();
+                if (pd14 == null) pd14 = door14Obj.AddComponent<AREscapeRoom.Doors.ProgressionDoor>();
+                pd14.Bind(dc14, AREscapeRoom.Core.DoorRequirement.RequiresFinalValidation, false, 6);
+
+                vault.Bind(pd14);
+                EditorUtility.SetDirty(vault);
+
+                if (doorFinalObj != null && doorFinalObj != door14Obj)
+                {
+                    doorFinalObj.SetActive(false);
+                }
+            }
+            else if (doorFinalObj != null)
             {
                 AREscapeRoom.Doors.ProgressionDoor pd = doorFinalObj.GetComponent<AREscapeRoom.Doors.ProgressionDoor>();
                 if (pd != null)
@@ -7697,63 +7762,8 @@ namespace AREscapeRoom.Editor
 
 
 
-                if (Vector3.Distance(desk.transform.position, targetPos) > 0.05f || desk.transform.position.y < 0f)
-
-
-
-
-
-
-
-                {
-
-
-
-
-
-
-
-                    desk.transform.position = targetPos;
-
-
-
-
-
-
-
-                    desk.transform.rotation = targetRot;
-
-
-
-
-
-
-
-                    desk.transform.localScale = Vector3.one;
-
-
-
-
-
-
-
-                    EditorUtility.SetDirty(desk.transform);
-
-
-
-
-
-
-
-                    changed = true;
-
-
-
-
-
-
-
-                }
+                // Respect manual editor layout for existing desk:
+                // if (Vector3.Distance(desk.transform.position, targetPos) > 0.05f || desk.transform.position.y < 0f) { desk.transform.position = targetPos; desk.transform.rotation = targetRot; desk.transform.localScale = Vector3.one; EditorUtility.SetDirty(desk.transform); changed = true; }
 
 
 
@@ -8646,77 +8656,237 @@ namespace AREscapeRoom.Editor
 
 
 
-                [MenuItem("EscapeRoom/Ensure Shape Objects Configured In Scene")]
-        public static void EnsureShapeObjectsConfigured()
+        [MenuItem("EscapeRoom/Setup Room 5 Shapes and Sockets")]
+        public static void SetupRoom5ShapesAndSockets()
         {
             GameObject room5 = GameObject.Find("Room_5");
-            var puzzle = room5 != null ? room5.GetComponent<ShapePlacementPuzzle>() : null;
+            if (room5 == null)
+            {
+                foreach (var r in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+                {
+                    Transform t = r.transform.Find("Room_5");
+                    if (t != null) { room5 = t.gameObject; break; }
+                }
+            }
+
+            // 1. Deactivate old primitive placeholder shapes inside Room_5 and in scene
+            // Deactivate old procedural placeholder shapes if present
+            string[] primitiveNames = new string[] { "StarCore", "StarCross", "Shape_Circle", "Shape_Triangle", "Shape_Star", "Shape_Square" };
+            foreach (var name in primitiveNames)
+            {
+                if (room5 != null)
+                {
+                    Transform prim = room5.transform.Find(name);
+                    if (prim != null) prim.gameObject.SetActive(false);
+                }
+                GameObject obj = GameObject.Find(name);
+                if (obj != null) obj.SetActive(false);
+            }
+
+            // Deactivate procedural Door_R5_R6 if present
+            GameObject doorR5 = GameObject.Find("Door_R5_R6");
+            if (doorR5 != null) doorR5.SetActive(false);
+
+            var puzzle = room5 != null ? room5.GetComponent<AREscapeRoom.Puzzles.ShapePlacementPuzzle>() : null;
             if (puzzle == null && room5 != null)
             {
-                puzzle = room5.AddComponent<ShapePlacementPuzzle>();
+                puzzle = room5.AddComponent<AREscapeRoom.Puzzles.ShapePlacementPuzzle>();
             }
 
-            var allTransforms = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-
-            foreach (var t in allTransforms)
+            // 2. Configure the 4 3D geometry objects: Traingle_Shape, Star_Shape, Square_Shape, Circle_Shape
+            var shapeConfigs = new (string[] names, AREscapeRoom.Puzzles.ShapeType type, Vector3 defaultPos)[]
             {
-                if (t == null) continue;
-                string lower = t.name.ToLower();
+                (new string[] { "Traingle_shape", "Traingle_Shape", "Triangle_Shape", "triangle_shape" }, AREscapeRoom.Puzzles.ShapeType.Triangle, new Vector3(-1.5f, 0.22f, 0.0f)),
+                (new string[] { "Star_Shape", "star_shape", "StarShape" }, AREscapeRoom.Puzzles.ShapeType.Star, new Vector3(-0.5f, 0.22f, 0.0f)),
+                (new string[] { "Square_Shape", "square_shape", "SquareShape" }, AREscapeRoom.Puzzles.ShapeType.Square, new Vector3(0.5f, 0.22f, 0.0f)),
+                (new string[] { "Circle_Shape", "circle_shape", "CircleShape" }, AREscapeRoom.Puzzles.ShapeType.Circle, new Vector3(1.5f, 0.22f, 0.0f))
+            };
 
-                if (lower.StartsWith("socket") || lower.Contains("socketlabel") || lower.Contains("hint") ||
-                    lower.Contains("wall") || lower.Contains("door") || lower.Contains("btn") ||
-                    lower.Contains("mall") || lower.Contains("roomzone") || lower.Contains("player") ||
-                    lower.Contains("camera") || lower.Contains("floor") || lower.Contains("ceiling"))
-                    continue;
-
-// Preserving all shapes placed in Room 5
-
-                ShapeType? matchedType = null;
-                if (lower == "traingle_shape" || lower == "triangle_shape" || lower == "shape_triangle" || (lower.Contains("triang") && !lower.Contains("socket")) || (lower.Contains("traing") && !lower.Contains("socket")))
-                    matchedType = ShapeType.Triangle;
-                else if (lower == "star_shape" || lower == "shape_star" || (lower.Contains("star") && !lower.Contains("socket") && !lower.Contains("starcourt")))
-                    matchedType = ShapeType.Star;
-                else if (lower == "circle_shape" || lower == "shape_circle" || (lower.Contains("circle") && !lower.Contains("socket")))
-                    matchedType = ShapeType.Circle;
-                else if (lower == "square_shape" || lower == "shape_square" || (lower.Contains("square") && !lower.Contains("socket")))
-                    matchedType = ShapeType.Square;
-
-                if (matchedType.HasValue)
+            foreach (var cfg in shapeConfigs)
+            {
+                GameObject shapeObj = null;
+                if (room5 != null)
                 {
-                    if (t.GetComponentInParent<ShapeObject>() != null && t.GetComponent<ShapeObject>() == null)
+                    foreach (Transform child in room5.transform)
                     {
-                        continue;
+                        foreach (var n in cfg.names)
+                        {
+                            if (string.Equals(child.gameObject.name, n, System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                shapeObj = child.gameObject;
+                                break;
+                            }
+                        }
+                        if (shapeObj != null) break;
                     }
+                }
 
-                    ShapeObject so = t.GetComponent<ShapeObject>();
-                    if (so == null)
+                if (shapeObj == null)
+                {
+                    foreach (var n in cfg.names)
                     {
-                        so = Undo.AddComponent<ShapeObject>(t.gameObject);
+                        shapeObj = GameObject.Find(n);
+                        if (shapeObj != null) break;
                     }
-                    so.Bind(matchedType.Value);
-                    so.EnsureCollidersAndPhysics();
+                }
 
-                    EditorUtility.SetDirty(t.gameObject);
-                    Debug.Log($"[AutoOpenSceneOnLoad] Preserved user placement for {t.name} ({matchedType.Value}) at local pos {t.localPosition}.");
+                if (shapeObj != null)
+                {
+                    shapeObj.SetActive(true);
+                    var shapeComp = shapeObj.GetComponent<AREscapeRoom.Puzzles.ShapeObject>();
+                    if (shapeComp == null)
+                    {
+                        shapeComp = shapeObj.AddComponent<AREscapeRoom.Puzzles.ShapeObject>();
+                    }
+                    shapeComp.Bind(cfg.type);
+
+                    // Ground the shape on the floor in front of the player if not already placed
+                    // Respect manual editor layout for Room 5 shapes:
+                    // if (!shapeComp.Placed && (shapeObj.transform.parent == null || (room5 != null && shapeObj.transform.parent == room5.transform))) { shapeObj.transform.localPosition = cfg.defaultPos; shapeObj.transform.localRotation = Quaternion.identity; shapeObj.transform.localScale = Vector3.one; }
+
+                    shapeComp.EnsureCollidersAndPhysics();
+                    Debug.Log($"Successfully initialized 3D shape: {shapeObj.name} as {cfg.type}");
+                }
+                else
+                {
+                    Debug.LogWarning($"Could not find shape object for {cfg.type}!");
                 }
             }
 
-            if (room5 != null)
+            // 3. Configure 4 Sockets & Labels
+            var socketConfigs = new (string[] names, AREscapeRoom.Puzzles.ShapeType type, string labelName)[]
             {
-                var sockets = room5.GetComponentsInChildren<ShapeSocket>(true);
-                foreach (var s in sockets)
+                (new string[] { "Socket_Triangle", "Socket_Traingle" }, AREscapeRoom.Puzzles.ShapeType.Triangle, "SocketLabel_Triangle"),
+                (new string[] { "Socket_Star" }, AREscapeRoom.Puzzles.ShapeType.Star, "SocketLabel_Star"),
+                (new string[] { "Socket_Square" }, AREscapeRoom.Puzzles.ShapeType.Square, "SocketLabel_Square"),
+                (new string[] { "Socket_Circle" }, AREscapeRoom.Puzzles.ShapeType.Circle, "SocketLabel_Circle")
+            };
+
+            foreach (var sc in socketConfigs)
+            {
+                GameObject sockObj = null;
+                foreach (var n in sc.names)
                 {
-                    s.DetectSocketType();
-                    s.Bind(s.AcceptedType, puzzle);
-                    EditorUtility.SetDirty(s);
+                    sockObj = GameObject.Find(n);
+                    if (sockObj != null) break;
+                }
+
+                if (sockObj != null)
+                {
+                    sockObj.SetActive(true);
+                    var sockComp = sockObj.GetComponent<AREscapeRoom.Puzzles.ShapeSocket>();
+                    if (sockComp == null)
+                    {
+                        sockComp = sockObj.AddComponent<AREscapeRoom.Puzzles.ShapeSocket>();
+                    }
+                    sockComp.Bind(sc.type, puzzle);
+
+                    Collider sockCol = sockObj.GetComponent<Collider>();
+                    if (sockCol == null)
+                    {
+                        BoxCollider bc = sockObj.AddComponent<BoxCollider>();
+                        bc.size = new Vector3(1f, 1f, 0.4f);
+                        bc.isTrigger = false;
+                    }
+                    else
+                    {
+                        sockCol.enabled = true;
+                    }
+                }
+
+                GameObject lblObj = GameObject.Find(sc.labelName);
+                if (lblObj == null && sc.type == AREscapeRoom.Puzzles.ShapeType.Triangle)
+                {
+                    lblObj = GameObject.Find("SocketLabel_Traingle");
+                }
+                if (lblObj != null)
+                {
+                    lblObj.SetActive(true);
                 }
             }
+
+            Debug.Log("[AutoOpenSceneOnLoad] Successfully configured Room 5 shapes, sockets, and labels.");
         }
 
         [MenuItem("EscapeRoom/Reset Player to Start Position")]
+        [MenuItem("EscapeRoom/Recreate Player and Main Camera in Front of AR_Escape_Room_Structure")]
         public static void EnsurePlayerAtStartPosition()
         {
-            // Do not override player position - preserve user placement at Main Camera
+            GameObject oldPlayer = GameObject.Find("Player");
+            if (oldPlayer != null)
+            {
+                Undo.DestroyObjectImmediate(oldPlayer);
+            }
+            GameObject oldCam = GameObject.Find("Main Camera");
+            if (oldCam != null)
+            {
+                Undo.DestroyObjectImmediate(oldCam);
+            }
+
+            GameObject door = GameObject.Find("Door_5_Brown");
+            if (door == null) door = GameObject.Find("Door_5_Room");
+            GameObject room = GameObject.Find("AR_Escape_Room_Structure");
+
+            Vector3 spawnPos;
+            if (door != null)
+            {
+                spawnPos = new Vector3(door.transform.position.x, 0.05f, door.transform.position.z - 2.8f);
+            }
+            else if (room != null)
+            {
+                spawnPos = new Vector3(room.transform.position.x + 0.1f, 0.05f, room.transform.position.z - 8.4f);
+            }
+            else
+            {
+                spawnPos = new Vector3(0.109f, 0.05f, -28.459f);
+            }
+
+            GameObject player = new GameObject("Player");
+            Undo.RegisterCreatedObjectUndo(player, "Create Player");
+            player.tag = "Player";
+            player.layer = 0;
+            player.transform.position = spawnPos;
+            player.transform.rotation = Quaternion.identity;
+            player.transform.localScale = Vector3.one;
+
+            CharacterController cc = player.AddComponent<CharacterController>();
+            cc.height = 1.8f;
+            cc.radius = 0.3f;
+            cc.center = new Vector3(0f, 0.9f, 0f);
+            cc.slopeLimit = 45f;
+            cc.stepOffset = 0.3f;
+            cc.skinWidth = 0.08f;
+            cc.minMoveDistance = 0.001f;
+
+            GameObject camObj = new GameObject("Main Camera");
+            Undo.RegisterCreatedObjectUndo(camObj, "Create Main Camera");
+            camObj.tag = "MainCamera";
+            camObj.layer = 0;
+            camObj.transform.SetParent(player.transform, false);
+            camObj.transform.localPosition = new Vector3(0f, 1.6f, 0f);
+            camObj.transform.localRotation = Quaternion.identity;
+            camObj.transform.localScale = Vector3.one;
+
+            Camera cam = camObj.AddComponent<Camera>();
+            cam.clearFlags = CameraClearFlags.Skybox;
+            cam.cullingMask = ~0;
+            cam.fieldOfView = 60f;
+            cam.nearClipPlane = 0.3f;
+            cam.farClipPlane = 120f;
+            cam.depth = 100f;
+
+            camObj.AddComponent<AudioListener>();
+
+            PlayerController pc = player.AddComponent<PlayerController>();
+            pc.AssignLookCamera(camObj.transform);
+
+            player.AddComponent<PlayerInteraction>();
+
+            EditorUtility.SetDirty(player);
+            EditorUtility.SetDirty(camObj);
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+
+            Debug.Log($"[AutoOpenSceneOnLoad] Fresh Player and Main Camera recreated in front of AR_Escape_Room_Structure at {spawnPos}!");
         }
     }
 }

@@ -29,6 +29,13 @@ namespace AREscapeRoom.Player
                     cameraTransform = cam.transform;
             }
 
+            if (cameraTransform == null)
+            {
+                GameObject camObj = GameObject.FindGameObjectWithTag("MainCamera");
+                if (camObj == null) camObj = GameObject.Find("Main Camera");
+                if (camObj != null) cameraTransform = camObj.transform;
+            }
+
             if (cameraTransform != null)
             {
                 if (holdPoint == null)
@@ -51,6 +58,7 @@ namespace AREscapeRoom.Player
 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+            SetPrompt("");
         }
 
         private void Update()
@@ -163,7 +171,16 @@ namespace AREscapeRoom.Player
                     continue;
 
                 // Direct interactable check on the object pointed at by the cursor
-                IInteractable interactable = hit.collider.GetComponentInParent<IInteractable>();
+                IInteractable interactable = hit.collider.GetComponent<IInteractable>();
+                if (interactable == null)
+                {
+                    // Pass through triggers that are not interactable themselves (e.g. RoomZone, proximity zones)
+                    if (hit.collider.isTrigger)
+                        continue;
+
+                    interactable = hit.collider.GetComponentInParent<IInteractable>();
+                }
+
                 if (interactable != null)
                 {
                     if (interactable.CanInteract)
@@ -180,10 +197,6 @@ namespace AREscapeRoom.Player
                         return null;
                     }
                 }
-
-                // If hit collider is a trigger (like RoomZone) and not interactable, let the ray pass through
-                if (hit.collider.isTrigger)
-                    continue;
 
                 // If cursor hits a solid surface (wall, floor, table, etc.) that is not interactable,
                 // line of sight is blocked and cursor is pointing at that surface. Stop here.
